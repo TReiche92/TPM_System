@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Origin TPM</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bo-blue: #003A70;
+            --bo-light-blue: #0066CC;
+            --bo-accent-blue: #4A90E2;
+            --bo-dark: #001F3F;
+            --bo-gray: #6B7280;
+            --bo-light-gray: #F3F4F6;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bo-dark) 0%, var(--bo-blue) 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: var(--bo-blue);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid var(--bo-accent-blue);
+        }
+        
+        .header h1 { 
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .user-info { 
+            display: flex; 
+            align-items: center; 
+            gap: 20px;
+        }
+        
+        .user-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .role-badge {
+            background: var(--bo-accent-blue);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .shift-badge {
+            background: #F59E0B;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .logout-btn {
+            background: white;
+            color: var(--bo-blue);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logout-btn:hover {
+            background: var(--bo-light-gray);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 30px auto;
+            padding: 0 40px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s;
+            border-left: 5px solid var(--bo-blue);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: var(--bo-light-gray);
+            border-radius: 0 0 0 100%;
+            opacity: 0.5;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0, 58, 112, 0.25);
+        }
+        
+        .stat-card h3 {
+            color: var(--bo-gray);
+            font-size: 12px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .stat-card .value {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--bo-blue);
+            position: relative;
+        }
+        
+        .stat-card:nth-child(2) {
+            border-left-color: #DC2626;
+        }
+        
+        .stat-card:nth-child(2) .value {
+            color: #DC2626;
+        }
+        
+        .stat-card:nth-child(3) {
+            border-left-color: #059669;
+        }
+        
+        .stat-card:nth-child(3) .value {
+            color: #059669;
+        }
+        
+        .stat-card:nth-child(4) {
+            border-left-color: #F59E0B;
+        }
+        
+        .stat-card:nth-child(4) .value {
+            color: #F59E0B;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px 12px 0 0;
+            padding: 10px 10px 0 10px;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 16px 28px;
+            background: transparent;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        
+        .tab.active {
+            background: white;
+            color: var(--bo-blue);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .content-section {
+            display: none;
+            background: white;
+            padding: 40px;
+            border-radius: 0 16px 16px 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            background: var(--bo-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 25px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 58, 112, 0.3);
+            font-size: 15px;
+            margin-right: 10px;
+        }
+        
+        .btn:hover {
+            background: var(--bo-light-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 58, 112, 0.4);
+        }
+        
+        .btn-filter {
+            background: #059669;
+        }
+        
+        .btn-filter:hover {
+            background: #047857;
+        }
+        
+        .btn-filter.active {
+            background: #065F46;
+        }
+
+        .btn-export {
+            background: #059669;
+        }
+        
+        .btn-export:hover {
+            background: #047857;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 25px;
+        }
+        
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        
+        th {
+            background: var(--bo-light-gray);
+            font-weight: 700;
+            color: var(--bo-blue);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        th:first-child {
+            border-radius: 10px 0 0 0;
+        }
+        
+        th:last-child {
+            border-radius: 0 10px 0 0;
+        }
+        
+        tr:hover {
+            background: #F9FAFB;
+        }
+        
+        tbody tr:last-child td:first-child {
+            border-radius: 0 0 0 10px;
+        }
+        
+        tbody tr:last-child td:last-child {
+            border-radius: 0 0 10px 0;
+        }
+        
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-overdue {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-due {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .status-upcoming {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .priority-high { 
+            color: #DC2626; 
+            font-weight: 700;
+        }
+        
+        .priority-medium { 
+            color: #F59E0B;
+            font-weight: 600;
+        }
+        
+        .priority-low { 
+            color: var(--bo-gray); 
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 31, 63, 0.8);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 3% auto;
+            padding: 40px;
+            width: 90%;
+            max-width: 650px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.4s;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-content h2 {
+            margin-bottom: 30px;
+            color: var(--bo-blue);
+            border-bottom: 3px solid var(--bo-accent-blue);
+            padding-bottom: 15px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--bo-blue);
+            font-size: 14px;
+        }
+        
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--bo-accent-blue);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .action-btn {
+            padding: 9px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 6px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .complete-btn {
+            background: #059669;
+            color: white;
+        }
+        
+        .complete-btn:hover {
+            background: #047857;
+        }
+
+        .incomplete-btn {
+            background: #F59E0B;
+            color: white;
+        }
+        
+        .incomplete-btn:hover {
+            background: #D97706;
+        }
+        
+        .edit-btn {
+            background: var(--bo-accent-blue);
+            color: white;
+        }
+        
+        .edit-btn:hover {
+            background: var(--bo-light-blue);
+        }
+        
+        .delete-btn {
+            background: #DC2626;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background: #B91C1C;
+        }
+        
+        .procedure-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--bo-blue);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: #EFF6FF;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+        
+        .procedure-link:hover {
+            background: var(--bo-blue);
+            color: white;
+            transform: translateX(4px);
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: var(--bo-gray);
+            margin-top: 8px;
+            font-style: italic;
+        }
+        
+        .task-info-box {
+            background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--bo-blue);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .btn-secondary {
+            background: var(--bo-gray);
+        }
+        
+        .btn-secondary:hover {
+            background: #4B5563;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--bo-gray);
+        }
+        
+        .empty-state-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .role-badge-table {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .role-admin {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+        
+        .role-operator {
+            background: #E0E7FF;
+            color: #5B21B6;
+        }
+        
+        .shift-badge-table {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .content-section h2 {
+            color: var(--bo-blue);
+            margin-bottom: 25px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .interval-type-group {
+            background: var(--bo-light-gray);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* NEW: Task details dropdown styling */
+        .task-details {
+            margin-top: 10px;
+            padding: 15px;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border-left: 3px solid var(--bo-accent-blue);
+        }
+
+        .task-details summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--bo-blue);
+            padding: 5px;
+            user-select: none;
+        }
+
+        .task-details summary:hover {
+            color: var(--bo-light-blue);
+        }
+
+        .task-details-content {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .detail-row {
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--bo-blue);
+            display: inline-block;
+            width: 150px;
+        }
+
+        .filter-section {
+            background: var(--bo-light-gray);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 25px;
+            }
+            
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .container {
+                padding: 0 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bo-light-gray);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--bo-blue);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--bo-light-blue);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>
+            <div class="logo-icon">🔧</div>
+            <span>Blue Origin TPM</span>
+        </h1>
+        <div class="user-info">
+            <div class="user-badge">
+                <span>👤 {{ username }}</span>
+                <span class="role-badge">{{ role }}</span>
+                {% if shift %}
+                <span class="shift-badge">Shift {{ shift }}</span>
+                {% endif %}
+            </div>
+            <button class="logout-btn" onclick="location.href='/logout'">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Tasks</h3>
+                <div class="value" id="total-tasks">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Overdue Tasks</h3>
+                <div class="value" id="overdue-tasks">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Completed This Week</h3>
+                <div class="value" id="completed-week">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Upcoming (7 Days)</h3>
+                <div class="value" id="upcoming-tasks">0</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('tasks')">📋 Task List</button>
+            {% if role == 'admin' %}
+            <button class="tab" onclick="showTab('manage')">⚙️ Manage Tasks</button>
+            <button class="tab" onclick="showTab('users')">👥 User Management</button>
+            {% endif %}
+            <button class="tab" onclick="showTab('reports')">📊 Reports</button>
+            <button class="tab" onclick="showTab('profile')">👤 My Profile</button>
+        </div>
+
+        <!-- TASKS SECTION -->
+        <div id="tasks-section" class="content-section active">
+            <h2>Active Maintenance Tasks</h2>
+            {% if shift %}
+            <button class="btn btn-filter" id="my-shift-filter" onclick="toggleShiftFilter()">
+                🔄 Show My Shift Tasks Only
+            </button>
+            {% endif %}
+            <div style="overflow-x: auto;">
+                <table id="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Shift</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Interval</th>
+                            <th>Next Due</th>
+                            <th>Procedure</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tasks-tbody">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #999;">
+                                Loading tasks...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MANAGE TASKS SECTION -->
+        {% if role == 'admin' %}
+        <div id="manage-section" class="content-section">
+            <h2>Manage Tasks</h2>
+            <div style="margin-bottom: 25px;">
+                <button class="btn" onclick="openAddTaskModal()">+ Add New Task</button>
+                <button class="btn btn-export" onclick="exportSystemData()">📤 Export System Data</button>
+                <button class="btn" onclick="openImportModal()" style="background: #7C3AED;">📥 Import System Data</button>
+            </div>
+            <p style="color: #666; margin-top: 10px;">Use the task list to edit or delete existing tasks. Export/Import allows you to backup or migrate tasks and users between TPM systems.</p>
+        </div>
+
+        <!-- USER MANAGEMENT SECTION -->
+        <div id="users-section" class="content-section">
+            <h2>User Management</h2>
+            <button class="btn" onclick="openAddUserModal()">+ Add New User</button>
+            <div style="overflow-x: auto;">
+                <table id="users-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Shift</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                                Loading users...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+                <!-- REPORTS SECTION WITH NEW FILTERS -->
+        <div id="reports-section" class="content-section">
+            <h2>TPM Reports & Analytics</h2>
+            
+            <div class="filter-section">
+                <h3 style="margin-bottom: 15px; color: var(--bo-blue);">Report Filters</h3>
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Start Date:</label>
+                        <input type="date" id="report-start" class="form-control">
+                    </div>
+                    <div class="filter-item">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">End Date:</label>
+                        <input type="date" id="report-end" class="form-control">
+                    </div>
+                    <div class="filter-item">
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px;">Filter by User:</label>
+                        <select id="report-user" class="form-control">
+                            <option value="">All Users</option>
+                            <!-- Users will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <button class="btn" onclick="generateReport()">Generate Report</button>
+                        <button class="btn btn-export" onclick="exportReportCSV()">📥 Export CSV</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="report-content" class="report-section"></div>
+        </div>
+
+
+        <!-- PROFILE SECTION -->
+        <div id="profile-section" class="content-section">
+            <h2>My Profile</h2>
+            <div style="background: var(--bo-light-gray); padding: 25px; border-radius: 12px; margin-bottom: 35px; border-left: 5px solid var(--bo-blue);">
+                <p style="margin-bottom: 10px;"><strong style="color: var(--bo-blue);">Username:</strong> {{ username }}</p>
+                <p style="margin-bottom: 10px;"><strong style="color: var(--bo-blue);">Role:</strong> <span class="role-badge-table role-{{ role }}">{{ role }}</span></p>
+                {% if shift %}
+                <p><strong style="color: var(--bo-blue);">Assigned Shift:</strong> <span class="shift-badge-table">Shift {{ shift }}</span></p>
+                {% endif %}
+            </div>
+            
+            <h3 style="margin-bottom: 25px; color: var(--bo-blue); font-size: 22px;">Change Password</h3>
+            <form id="change-password-form" style="max-width: 600px;">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="current-password" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="new-password" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="confirm-password" required minlength="6">
+                </div>
+                <button type="submit" class="btn">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TASK MODAL WITH NEW INTERVAL TYPES -->
+    <div id="task-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Add New Task</h2>
+            <form id="task-form">
+                <div class="form-group">
+                    <label>Task Name *</label>
+                    <input type="text" id="task-name" required placeholder="e.g., Lubricate Conveyor Bearings">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="task-description" rows="3" placeholder="Detailed description of the maintenance task..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Procedure Document Link</label>
+                    <input type="url" id="task-procedure-link" placeholder="https://wiki.blueorigin.com/... or file://server/path/procedure.pdf">
+                    <div class="help-text">📄 Link to procedure document (Wiki, SharePoint, PDF, etc.)</div>
+                </div>
+                
+                <div class="interval-type-group">
+                    <div class="form-group">
+                        <label>Interval Type *</label>
+                        <select id="task-interval-type" required>
+                            <option value="start_shift_daily">Start of Shift (Daily) - Due at shift start each active day</option>
+                            <option value="start_shift_weekly">Start of Shift (Weekly) - Due at first shift day of week</option>
+                            <option value="end_shift_daily">End of Shift (Daily) - Due at shift end each active day</option>
+                            <option value="end_shift_weekly">End of Shift (Weekly) - Due at last shift day of week</option>
+                        </select>
+                        <div class="help-text">Determines when the task is due based on shift schedule</div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Assigned Shift</label>
+                            <select id="task-assigned-shift">
+                                <option value="">All Shifts</option>
+                                <option value="A">Shift A (04:30-15:30 Mon-Thu)</option>
+                                <option value="B">Shift B (16:30-03:30 Mon-Thu)</option>
+                                <option value="C">Shift C (05:00-17:00 Fri-Sun)</option>
+                                <option value="D">Shift D (17:00-05:00 Fri-Sun)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" id="task-category" placeholder="e.g., Electrical, Mechanical">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Priority Level</label>
+                        <select id="task-priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High (Required for run permissive)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn">💾 Save Task</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- USER MODAL -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="user-modal-title">Add New User</h2>
+            <form id="user-form">
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" id="user-username" required placeholder="Enter username">
+                </div>
+                
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" id="user-password" minlength="6" placeholder="Enter password (min 6 characters)">
+                    <div class="help-text" id="password-help" style="display: none;">Leave blank to keep current password (when editing)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Role *</label>
+                    <select id="user-role" required onchange="updateShiftField()">
+                        <option value="operator">Operator - Can complete tasks and view reports</option>
+                        <option value="admin">Admin - Full access including user management</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="shift-field">
+                    <label>Assigned Shift *</label>
+                    <select id="user-shift" required>
+                        <option value="A">Shift A (04:30-15:30 Mon-Thu)</option>
+                        <option value="B">Shift B (16:30-03:30 Mon-Thu)</option>
+                        <option value="C">Shift C (05:00-17:00 Fri-Sun)</option>
+                        <option value="D">Shift D (17:00-05:00 Fri-Sun)</option>
+                    </select>
+                    <div class="help-text">Operators must be assigned to a shift</div>
+                </div>
+                
+                <div class="btn-group">
+                    <button type="submit" class="btn">💾 Save User</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('user-modal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- IMPORT MODAL -->
+    <div id="import-modal" class="modal">
+        <div class="modal-content">
+            <h2>Import System Data</h2>
+            <div style="background: #FEF3C7; padding: 20px; border-radius: 10px; margin-bottom: 25px; border-left: 5px solid #F59E0B;">
+                <h4 style="color: #92400E; margin-bottom: 10px;">⚠️ Important Notes:</h4>
+                <ul style="color: #92400E; margin-left: 20px; line-height: 1.6;">
+                    <li>This will import tasks and users from another TPM system</li>
+                    <li>Existing tasks and users with the same names will be updated</li>
+                    <li>New tasks and users will be created</li>
+                    <li>Always backup your current system before importing</li>
+                </ul>
+            </div>
+            <form id="import-form">
+                <div class="form-group">
+                    <label>Select Import File *</label>
+                    <input type="file" id="import-file" accept=".json" required>
+                    <div class="help-text">Select a JSON file exported from another TPM system</div>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn">📥 Import Data</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('import-modal')">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- COMPLETE TASK MODAL -->
+    <div id="complete-modal" class="modal">
+        <div class="modal-content">
+            <h2>Complete Maintenance Task</h2>
+            <div class="task-info-box">
+                <h3 id="complete-task-name"></h3>
+                <div id="complete-procedure-link-container"></div>
+            </div>
+            <form id="complete-form">
+                <input type="hidden" id="complete-task-id">
+                <div class="form-group">
+                    <label>Completion Notes (Optional)</label>
+                    <textarea id="complete-notes" rows="5" placeholder="Enter any observations, issues found, parts replaced, or additional work performed..."></textarea>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn">✓ Mark as Complete</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeCompleteModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentTaskId = null;
+        let currentUserId = null;
+        let allTasks = [];
+        let allUsers = [];
+        const userRole = "{{ role }}";
+        const userShift = "{{ shift }}" || null;
+        let myShiftFilterActive = false;
+
+        // Helper function to get interval type display name
+        function getIntervalTypeDisplay(intervalType) {
+            const types = {
+                'start_shift_daily': 'Start of Shift (Daily)',
+                'start_shift_weekly': 'Start of Shift (Weekly)',
+                'end_shift_daily': 'End of Shift (Daily)',
+                'end_shift_weekly': 'End of Shift (Weekly)'
+            };
+            return types[intervalType] || intervalType;
+        }
+
+        // SHIFT FILTER TOGGLE
+        function toggleShiftFilter() {
+            myShiftFilterActive = !myShiftFilterActive;
+            const btn = document.getElementById('my-shift-filter');
+            if (myShiftFilterActive) {
+                btn.classList.add('active');
+                btn.textContent = '✓ Showing My Shift Tasks';
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = '🔄 Show My Shift Tasks Only';
+            }
+            loadTasks();
+        }
+
+                // TAB SWITCHING
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-section').style.display = 'block';
+            
+            if (tabName === 'tasks') loadTasks();
+            if (tabName === 'users' && userRole === 'admin') loadUsers();
+            if (tabName === 'reports') {
+                loadReportUsers();  // NEW: Load users for dropdown
+                setTimeout(generateReport, 100);
+            }
+        }
+
+        // LOAD TASKS WITH NEW FIELDS
+        async function loadTasks() {
+            try {
+                const url = myShiftFilterActive ? '/api/tasks?my_shift_only=true' : '/api/tasks';
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('API Error:', errorData);
+                    throw new Error(errorData.error || 'Failed to load tasks');
+                }
+                
+                allTasks = await response.json();
+                
+                if (!Array.isArray(allTasks)) {
+                    console.error('Invalid response:', allTasks);
+                    throw new Error('Server returned invalid data format');
+                }
+                
+                const tbody = document.getElementById('tasks-tbody');
+                tbody.innerHTML = '';
+                
+                if (allTasks.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <p>No tasks found. ${userRole === 'admin' ? 'Click "Add New Task" to create your first task.' : 'Contact an admin to add tasks.'}</p>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    document.getElementById('total-tasks').textContent = '0';
+                    document.getElementById('overdue-tasks').textContent = '0';
+                    document.getElementById('upcoming-tasks').textContent = '0';
+                    return;
+                }
+                
+                let totalTasks = allTasks.length;
+                let overdueTasks = 0;
+                let upcomingTasks = 0;
+                
+                allTasks.forEach(task => {
+                    if (task.status === 'overdue') overdueTasks++;
+                    if (task.days_until_due <= 7 && task.days_until_due >= 0) upcomingTasks++;
+                    
+                    // Enhanced procedure link handling with debugging and auto-protocol detection
+                    let procedureCell = '';
+                    if (task.procedure_link && task.procedure_link.trim() !== '') {
+                        let originalLink = task.procedure_link.trim(); // Store ORIGINAL exactly as-is
+                        let link = originalLink;
+                        
+                        // Debug: Log what we received from the database
+                        console.log(`Task "${task.task_name}"`);
+                        console.log(`  Original from DB: "${originalLink}"`);
+                        console.log(`  Has backslashes: ${originalLink.includes('\\')}`);
+                        
+                        // Check if it's a relative path or missing protocol
+                        if (!link.startsWith('http://') && 
+                            !link.startsWith('https://') && 
+                            !link.startsWith('file://')) {
+                            
+                            // If it looks like a file path (contains backslashes or starts with drive letter)
+                            if (link.includes('\\') || /^[a-zA-Z]:/.test(link)) {
+                                link = 'file:///' + link.replace(/\\/g, '/');
+                                console.log(`  → Converted to file:// URL: ${link}`);
+                            } 
+                            // If it starts with // (UNC path)
+                            else if (link.startsWith('//')) {
+                                link = 'file:' + link;
+                                console.log(`  → Converted UNC to file:// URL: ${link}`);
+                            }
+                            // If it looks like a Windows path without backslashes (they got lost), try to fix it
+                            else if (/^[a-zA-Z]:[A-Z]/.test(link)) {
+                                // Pattern like "C:Users" suggests missing backslashes
+                                console.warn(`  ⚠️ WARNING: Path looks corrupted (missing backslashes): ${link}`);
+                                // We can't reliably reconstruct it, just show what we have
+                                link = 'file:///' + link.replace(/\\/g, '/');
+                            }
+                            // Otherwise assume it's a web link, add https://
+                            else {
+                                link = 'https://' + link;
+                                console.log(`  → Added https:// protocol: ${link}`);
+                            }
+                        }
+                        
+                        // For file:// links, provide both link and copy button
+                        if (link.startsWith('file://') || /^[a-zA-Z]:/.test(originalLink)) {
+                            procedureCell = `
+                                <div style="display: flex; gap: 5px; align-items: center;">
+                                    <a href="${link}" target="_blank" rel="noopener noreferrer" class="procedure-link" title="Open: ${originalLink}">
+                                        📄 View
+                                    </a>
+                                    <button class="action-btn" onclick='copyToClipboard(\`${originalLink.replace(/\\/g, '\\\\').replace(/`/g, '\\`')}\`); event.stopPropagation();' 
+                                            title="Copy path: ${originalLink}" style="background: #6B7280; padding: 6px 12px;">
+                                        📋
+                                    </button>
+                                </div>
+                            `;
+                        } else {
+                            procedureCell = `<a href="${link}" target="_blank" rel="noopener noreferrer" class="procedure-link" title="Open: ${originalLink}">
+                                📄 View
+                            </a>`;
+                        }
+                    } else {
+                        procedureCell = '<span style="color: #999; font-size: 12px;">No procedure</span>';
+                    }
+
+
+                    const shiftDisplay = task.assigned_shift ? 
+                        `<span class="shift-badge-table">Shift ${task.assigned_shift}</span>` : 
+                        '<span style="color: #999; font-size: 12px;">All</span>';
+                    
+                    const intervalDisplay = getIntervalTypeDisplay(task.interval_type);
+                    
+                    // NEW: Task details dropdown
+                    const taskDetails = `
+                        <details class="task-details">
+                            <summary>📋 View Details</summary>
+                            <div class="task-details-content">
+                                <div class="detail-row">
+                                    <span class="detail-label">Description:</span>
+                                    <span>${task.description || 'No description provided'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Last Completed:</span>
+                                    <span>${task.last_completed_at || 'Never'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Completed By:</span>
+                                    <span>${task.last_completed_by || '—'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Procedure:</span>
+                                    ${task.procedure_link ? `<a href="${task.procedure_link}" target="_blank">Open Document</a>` : 'No procedure linked'}
+                                </div>
+                            </div>
+                        </details>
+                    `;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <strong>${task.task_name}</strong>
+                            ${taskDetails}
+                        </td>
+                        <td>${shiftDisplay}</td>
+                        <td>${task.category || '<span style="color: #999;">-</span>'}</td>
+                        <td class="priority-${task.priority}">${task.priority.toUpperCase()}</td>
+                        <td>${intervalDisplay}</td>
+                        <td>${task.next_due}</td>
+                        <td>${procedureCell}</td>
+                        <td><span class="status-badge status-${task.status}">${task.status.toUpperCase()}</span></td>
+                        <td style="white-space: nowrap;">
+                            ${task.status === 'overdue' || task.status === 'due' ? 
+                                `<button class="action-btn complete-btn" onclick="openCompleteModal(${task.id})" title="Complete Task">✓</button>` :
+                                `<button class="action-btn incomplete-btn" onclick="markIncomplete(${task.id})" title="Mark as Incomplete">↶</button>`
+                            }
+                            ${userRole === 'admin' ? `
+                                <button class="action-btn edit-btn" onclick="editTask(${task.id})" title="Edit Task">✎</button>
+                                <button class="action-btn delete-btn" onclick="deleteTask(${task.id})" title="Delete Task">✕</button>
+                            ` : ''}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                document.getElementById('total-tasks').textContent = totalTasks;
+                document.getElementById('overdue-tasks').textContent = overdueTasks;
+                document.getElementById('upcoming-tasks').textContent = upcomingTasks;
+                
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                
+                const tbody = document.getElementById('tasks-tbody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px;">
+                            <div style="color: #DC2626; font-size: 18px; margin-bottom: 10px;">⚠️ Error Loading Tasks</div>
+                            <div style="color: #666; margin-bottom: 20px;">${error.message}</div>
+                            <button class="btn" onclick="loadTasks()">🔄 Retry</button>
+                        </td>
+                    </tr>
+                `;
+                
+                document.getElementById('total-tasks').textContent = '-';
+                document.getElementById('overdue-tasks').textContent = '-';
+                document.getElementById('upcoming-tasks').textContent = '-';
+            }
+        }
+
+        // NEW: Mark task as incomplete
+        async function markIncomplete(taskId) {
+            if (!confirm('Are you sure you want to mark this task as incomplete? This will remove the most recent completion record.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/incomplete`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                
+                if (response.ok) {
+                    alert('✓ Task marked as incomplete');
+                    loadTasks();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.error || 'Failed to mark task as incomplete'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error marking task as incomplete');
+            }
+        }
+
+        // LOAD USERS
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users');
+                allUsers = await response.json();
+                
+                const tbody = document.getElementById('users-tbody');
+                tbody.innerHTML = '';
+                
+                if (allUsers.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <div class="empty-state-icon">👥</div>
+                                <p>No users found.</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                allUsers.forEach(user => {
+                    const createdDate = new Date(user.created_at).toLocaleDateString();
+                    const shiftDisplay = user.shift ? 
+                        `<span class="shift-badge-table">Shift ${user.shift}</span>` : 
+                        '<span style="color: #999; font-size: 12px;">N/A</span>';
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${user.username}</strong></td>
+                        <td><span class="role-badge-table role-${user.role}">${user.role}</span></td>
+                        <td>${shiftDisplay}</td>
+                        <td>${createdDate}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="action-btn edit-btn" onclick="editUser(${user.id})" title="Edit User">✎</button>
+                            <button class="action-btn delete-btn" onclick="deleteUser(${user.id}, '${user.username}')" title="Delete User">✕</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+                alert('Error loading users. Please refresh the page.');
+            }
+        }
+
+        // Load users for report filter dropdown
+        async function loadReportUsers() {
+            try {
+                const response = await fetch('/api/users');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch users');
+                }
+                
+                const users = await response.json();
+                
+                const select = document.getElementById('report-user');
+                // Clear existing options
+                select.innerHTML = '<option value="">All Users</option>';
+                
+                // Add each user as an option
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = `${user.username} (${user.role}${user.shift ? ' - Shift ' + user.shift : ''})`;
+                    select.appendChild(option);
+                });
+                
+                console.log(`✓ Loaded ${users.length} users for report filter`);
+                
+            } catch (error) {
+                console.error('Error loading users for report:', error);
+                // Fallback - just leave "All Users" if API fails
+                const select = document.getElementById('report-user');
+                select.innerHTML = '<option value="">All Users</option><option disabled>Error loading users</option>';
+            }
+        }
+
+
+        // MODAL FUNCTIONS
+        function openAddTaskModal() {
+            currentTaskId = null;
+            document.getElementById('modal-title').textContent = 'Add New Task';
+            document.getElementById('task-form').reset();
+            document.getElementById('task-modal').style.display = 'block';
+        }
+
+        function openAddUserModal() {
+            currentUserId = null;
+            document.getElementById('user-modal-title').textContent = 'Add New User';
+            document.getElementById('user-form').reset();
+            document.getElementById('user-password').required = true;
+            document.getElementById('password-help').style.display = 'none';
+            updateShiftField();
+            document.getElementById('user-modal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function openCompleteModal(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            document.getElementById('complete-task-id').value = taskId;
+            document.getElementById('complete-task-name').textContent = task.task_name;
+            
+            const procedureContainer = document.getElementById('complete-procedure-link-container');
+            if (task.procedure_link) {
+                procedureContainer.innerHTML = `
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">
+                        <strong style="color: var(--bo-blue);">📋 Procedure Document:</strong><br>
+                        <a href="${task.procedure_link}" target="_blank" class="procedure-link" style="margin-top: 8px; display: inline-flex;">
+                            📄 Open Procedure Document
+                        </a>
+                        <p style="font-size: 12px; color: #888; margin-top: 8px;">Please review the procedure before completing this task.</p>
+                    </div>
+                `;
+            } else {
+                procedureContainer.innerHTML = `
+                    <p style="color: #F59E0B; margin-top: 10px; font-size: 13px;">
+                        ⚠️ No procedure document is linked for this task. Please proceed with caution.
+                    </p>
+                `;
+            }
+            
+            document.getElementById('complete-form').reset();
+            document.getElementById('complete-modal').style.display = 'block';
+        }
+
+        function closeCompleteModal() {
+            document.getElementById('complete-modal').style.display = 'none';
+        }
+
+        // EDIT FUNCTIONS
+        async function editTask(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (!task) return;
+            
+            currentTaskId = taskId;
+            document.getElementById('modal-title').textContent = 'Edit Task';
+            document.getElementById('task-name').value = task.task_name;
+            document.getElementById('task-description').value = task.description || '';
+            document.getElementById('task-procedure-link').value = task.procedure_link || '';
+            document.getElementById('task-interval-type').value = task.interval_type;
+            document.getElementById('task-assigned-shift').value = task.assigned_shift || '';
+            document.getElementById('task-category').value = task.category || '';
+            document.getElementById('task-priority').value = task.priority;
+            document.getElementById('task-modal').style.display = 'block';
+        }
+
+        async function editUser(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+            
+            currentUserId = userId;
+            document.getElementById('user-modal-title').textContent = 'Edit User';
+            document.getElementById('user-username').value = user.username;
+            document.getElementById('user-password').value = '';
+            document.getElementById('user-password').required = false;
+            document.getElementById('password-help').style.display = 'block';
+            document.getElementById('user-role').value = user.role;
+            document.getElementById('user-shift').value = user.shift || '';
+            updateShiftField();
+            document.getElementById('user-modal').style.display = 'block';
+        }
+
+        function updateShiftField() {
+            const role = document.getElementById('user-role').value;
+            const shiftField = document.getElementById('shift-field');
+            const shiftSelect = document.getElementById('user-shift');
+            
+            if (role === 'admin') {
+                shiftField.style.display = 'none';
+                shiftSelect.required = false;
+            } else {
+                shiftField.style.display = 'block';
+                shiftSelect.required = true;
+            }
+        }
+
+        // FORM SUBMISSIONS
+        document.getElementById('task-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const taskData = {
+                task_name: document.getElementById('task-name').value,
+                description: document.getElementById('task-description').value,
+                procedure_link: document.getElementById('task-procedure-link').value,
+                interval_type: document.getElementById('task-interval-type').value,
+                interval_days: 1, // Not used for new interval types but required
+                assigned_shift: document.getElementById('task-assigned-shift').value,
+                category: document.getElementById('task-category').value,
+                priority: document.getElementById('task-priority').value
+            };
+            
+            try {
+                const url = currentTaskId ? `/api/tasks/${currentTaskId}` : '/api/tasks';
+                const method = currentTaskId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(taskData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    closeModal('task-modal');
+                    loadTasks();
+                    alert('✓ Task saved successfully!');
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to save task'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error saving task: ' + error.message);
+            }
+        });
+
+        document.getElementById('user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const password = document.getElementById('user-password').value;
+            const role = document.getElementById('user-role').value;
+            
+            if (!currentUserId && !password) {
+                alert('Password is required for new users');
+                return;
+            }
+            
+            const userData = {
+                username: document.getElementById('user-username').value,
+                role: role
+            };
+            
+            if (password) {
+                userData.password = password;
+            }
+            
+            if (role === 'operator') {
+                userData.shift = document.getElementById('user-shift').value;
+                if (!userData.shift) {
+                    alert('Shift is required for operators');
+                    return;
+                }
+            }
+            
+            try {
+                const url = currentUserId ? `/api/users/${currentUserId}` : '/api/users';
+                const method = currentUserId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(userData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    closeModal('user-modal');
+                    loadUsers();
+                    alert('✓ User saved successfully!');
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to save user'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error saving user: ' + error.message);
+            }
+        });
+
+        document.getElementById('complete-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const taskId = document.getElementById('complete-task-id').value;
+            const notes = document.getElementById('complete-notes').value;
+            
+            try {
+                const response = await fetch(`/api/tasks/${taskId}/complete`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({notes: notes})
+                });
+                
+                if (response.ok) {
+                    closeCompleteModal();
+                    loadTasks();
+                    alert('✓ Task completed successfully!');
+                } else {
+                    alert('Error completing task. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error completing task. Please try again.');
+            }
+        });
+
+        document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match!');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters long!');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/users/change-password', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✓ Password changed successfully!');
+                    document.getElementById('change-password-form').reset();
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to change password'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error changing password: ' + error.message);
+            }
+        });
+
+        // DELETE FUNCTIONS
+        async function deleteTask(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (!confirm(`Are you sure you want to delete "${task.task_name}"?\n\nThis action cannot be undone.`)) return;
+            
+            try {
+                const response = await fetch(`/api/tasks/${taskId}`, {method: 'DELETE'});
+                
+                if (response.ok) {
+                    loadTasks();
+                    alert('✓ Task deleted successfully!');
+                } else {
+                    alert('Error deleting task. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting task. Please try again.');
+            }
+        }
+
+        async function deleteUser(userId, username) {
+            if (!confirm(`Are you sure you want to delete user "${username}"?\n\nThis action cannot be undone.`)) return;
+            
+            try {
+                const response = await fetch(`/api/users/${userId}`, {method: 'DELETE'});
+                const result = await response.json();
+                
+                if (response.ok) {
+                    loadUsers();
+                    alert('✓ User deleted successfully!');
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to delete user'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting user. Please try again.');
+            }
+        }
+
+                // REPORTS WITH NEW USER FILTER
+        async function generateReport() {
+            const startDate = document.getElementById('report-start').value;
+            const endDate = document.getElementById('report-end').value;
+            const userFilter = document.getElementById('report-user').value;  // Now from dropdown
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+            
+            try {
+                let url = `/api/reports/summary?start_date=${startDate}&end_date=${endDate}`;
+                if (userFilter) {
+                    url += `&user=${encodeURIComponent(userFilter)}`;
+                }
+                
+                const response = await fetch(url);
+                const report = await response.json();
+                
+                let html = `
+                    <div class="report-header" style="background: var(--bo-light-gray); padding: 25px; border-radius: 12px; margin-bottom: 25px; border-left: 5px solid var(--bo-blue);">
+                        <h3 style="color: var(--bo-blue); margin-bottom: 10px; font-size: 22px;">📊 TPM Summary Report</h3>
+                        <p style="color: #666;">Report Period: <strong>${report.date_range.start}</strong> to <strong>${report.date_range.end}</strong></p>
+                        ${userFilter ? `<p style="color: #666;">User Filter: <strong>${userFilter}</strong></p>` : '<p style="color: #666;">Showing: <strong>All Users</strong></p>'}
+                    </div>
+                `;
+                
+                html += `<div style="margin-bottom: 30px;">`;
+                html += `<h4 style="color: #DC2626; margin-bottom: 15px;">⚠️ Overdue Tasks (${report.overdue_tasks.length})</h4>`;
+                
+                if (report.overdue_tasks.length > 0) {
+                    html += '<table><thead><tr><th>Task Name</th><th>Shift</th><th>Hours Overdue</th><th>Last Completed</th><th>Procedure</th></tr></thead><tbody>';
+                    report.overdue_tasks.forEach(task => {
+                        const procedureLink = task.procedure_link ? 
+                            `<a href="${task.procedure_link}" target="_blank" class="procedure-link">📄 View</a>` :
+                            '<span style="color: #999;">No procedure</span>';
+                        html += `<tr>
+                            <td><strong>${task.task_name}</strong></td>
+                            <td>${task.assigned_shift || 'All'}</td>
+                            <td style="color: #DC2626; font-weight: bold;">${task.hours_overdue}h (${task.days_overdue}d)</td>
+                            <td>${task.last_completed}</td>
+                            <td>${procedureLink}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                } else {
+                    html += '<p style="color: #059669; font-weight: 600;">✓ No overdue tasks - Great job!</p>';
+                }
+                html += `</div>`;
+                
+                if (report.completions.length > 0) {
+                    html += `<div style="margin-bottom: 30px;">`;
+                    html += `<h4 style="color: #059669; margin-bottom: 15px;">✓ Completed Tasks (${report.completions.length} unique tasks)</h4>`;
+                    html += '<table><thead><tr><th>Task Name</th><th>Shift</th><th>Category</th><th>Completed By</th><th>Count</th></tr></thead><tbody>';
+                    report.completions.forEach(comp => {
+                        html += `<tr>
+                            <td><strong>${comp.task_name}</strong></td>
+                            <td>${comp.assigned_shift || 'All'}</td>
+                            <td>${comp.category || '-'}</td>
+                            <td>${comp.completed_by}</td>
+                            <td><strong>${comp.completion_count}</strong></td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table></div>';
+                } else {
+                    html += '<p style="color: #999; margin-top: 20px;">No task completions in selected date range.</p>';
+                }
+                
+                document.getElementById('report-content').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Error generating report. Please try again.');
+            }
+        }
+
+        // Export CSV function
+        function exportReportCSV() {
+            const startDate = document.getElementById('report-start').value;
+            const endDate = document.getElementById('report-end').value;
+            const userFilter = document.getElementById('report-user').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+            
+            let url = `/api/reports/export?start=${startDate}&end=${endDate}`;
+            if (userFilter) {
+                url += `&user=${encodeURIComponent(userFilter)}`;
+            }
+            
+            // Open in new window to trigger download
+            window.open(url, '_blank');
+        }
+
+
+        // Helper function to copy text to clipboard
+        function copyToClipboard(text) {
+            // Create temporary textarea
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('📋 Path copied to clipboard!\n\n' + text + '\n\nYou can paste this into File Explorer or your browser.');
+            } catch (err) {
+                console.error('Failed to copy:', err);
+                // Fallback: show the path
+                prompt('Copy this path manually:', text);
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        // IMPORT/EXPORT FUNCTIONS
+        function openImportModal() {
+            document.getElementById('import-modal').style.display = 'block';
+        }
+
+        async function exportSystemData() {
+            try {
+                const response = await fetch('/api/admin/export');
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Export failed: ' + (error.error || 'Unknown error'));
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // Create filename with timestamp
+                const now = new Date();
+                const timestamp = now.toISOString().slice(0, 19).replace(/[:-]/g, '');
+                const filename = `tpm_system_export_${timestamp}.json`;
+                
+                // Create and download file
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                alert(`✓ System data exported successfully!\n\nFile: ${filename}\nTasks: ${data.tasks.length}\nUsers: ${data.users.length}`);
+                
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Export failed: ' + error.message);
+            }
+        }
+
+        // Handle import form submission
+        document.getElementById('import-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('import-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('Please select a file to import');
+                return;
+            }
+            
+            if (!file.name.endsWith('.json')) {
+                alert('Please select a valid JSON file');
+                return;
+            }
+            
+            try {
+                const fileContent = await file.text();
+                let importData;
+                
+                try {
+                    importData = JSON.parse(fileContent);
+                } catch (parseError) {
+                    alert('Invalid JSON file format');
+                    return;
+                }
+                
+                // Validate the import data structure
+                if (!importData.tasks || !importData.users || !importData.export_info) {
+                    alert('Invalid TPM export file format. Missing required sections.');
+                    return;
+                }
+                
+                // Show confirmation with import details
+                const confirmMsg = `Import System Data?\n\n` +
+                    `Tasks to import: ${importData.tasks.length}\n` +
+                    `Users to import: ${importData.users.length}\n` +
+                    `Export date: ${importData.export_info.export_date}\n` +
+                    `Source system: ${importData.export_info.system_info}\n\n` +
+                    `This will update existing items and create new ones.\n` +
+                    `Continue?`;
+                
+                if (!confirm(confirmMsg)) {
+                    return;
+                }
+                
+                const response = await fetch('/api/admin/import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(importData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    closeModal('import-modal');
+                    
+                    // Show success message with details
+                    alert(`✓ Import completed successfully!\n\n` +
+                        `Tasks imported: ${result.tasks_imported}\n` +
+                        `Users imported: ${result.users_imported}\n` +
+                        `Tasks updated: ${result.tasks_updated}\n` +
+                        `Users updated: ${result.users_updated}`);
+                    
+                    // Reload the current data
+                    loadTasks();
+                    if (userRole === 'admin') {
+                        loadUsers();
+                    }
+                } else {
+                    alert('Import failed: ' + (result.error || 'Unknown error'));
+                }
+                
+            } catch (error) {
+                console.error('Import error:', error);
+                alert('Import failed: ' + error.message);
+            }
+        });
+
+
+        // INITIALIZE
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        document.getElementById('report-start').valueAsDate = thirtyDaysAgo;
+        document.getElementById('report-end').valueAsDate = today;
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+        
+
+        loadTasks();
+    </script>
+</body>
+</html>
